@@ -1,14 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>ChatGPT Chatbot</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class', // Important: use class strategy
+    };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 </head>
+
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white h-screen flex flex-col font-sans transition-colors duration-300">
 
   <!-- Header -->
@@ -16,7 +22,7 @@
     <h1 class="text-xl font-semibold">🤖 ChatGPT Assistant</h1>
     <button id="toggleTheme"
       class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded hover:scale-105 transition">
-      Toggle Theme
+      🌙 Dark Mode
     </button>
   </header>
 
@@ -52,15 +58,25 @@
       }
     });
 
-    document.getElementById('toggleTheme').addEventListener('click', () => {
-      const html = document.documentElement;
+    const toggleBtn = document.getElementById('toggleTheme');
+    const html = document.documentElement;
+
+    function updateThemeButton(isDark) {
+      toggleBtn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+    }
+
+    toggleBtn.addEventListener('click', () => {
       const isDark = html.classList.toggle('dark');
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateThemeButton(isDark);
     });
 
     window.addEventListener('DOMContentLoaded', () => {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'dark') document.documentElement.classList.add('dark');
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = saved === 'dark' || (!saved && prefersDark);
+      html.classList.toggle('dark', isDark);
+      updateThemeButton(isDark);
     });
 
     async function send() {
