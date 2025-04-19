@@ -3,52 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <title>ChatGPT Chatbot</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 30px; }
-    textarea { width: 100%; }
-    button { padding: 8px 16px; margin-top: 10px; }
-    #loading { display: none; color: #555; }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h2>Chat with GPT</h2>
-  
-  <textarea id="input" rows="4" placeholder="Type your message here..."></textarea><br>
-  <button id="sendBtn" onclick="send()">Send</button>
-  
-  <p id="loading">Loading...</p>
-  <h3>Response:</h3>
-  <p id="response"></p>
+<body class="bg-gray-100 h-screen flex flex-col font-sans">
+
+  <header class="bg-white shadow p-4 text-xl font-semibold text-center">
+    ChatGPT Assistant
+  </header>
+
+  <main class="flex-1 overflow-y-auto p-4" id="chatContainer">
+    <!-- Chat messages will be appended here -->
+  </main>
+
+  <footer class="bg-white p-4 shadow flex gap-2">
+    <textarea id="input" rows="2" placeholder="Type your message..."
+      class="flex-1 border rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+    <button id="sendBtn" onclick="send()"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Send</button>
+  </footer>
 
   <script>
     async function send() {
       const input = document.getElementById('input');
-      const responseElem = document.getElementById('response');
-      const loadingElem = document.getElementById('loading');
+      const message = input.value.trim();
+      const chatContainer = document.getElementById('chatContainer');
       const sendBtn = document.getElementById('sendBtn');
 
-      const message = input.value.trim();
       if (!message) return;
 
-      responseElem.textContent = '';
-      loadingElem.style.display = 'block';
+      // Show user message
+      appendMessage(message, 'user');
+
+      // Reset input
+      input.value = '';
       sendBtn.disabled = true;
+
+      // Show loading
+      const loadingEl = appendMessage("...", 'bot', true);
 
       try {
         const res = await fetch('/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: message })
+          body: JSON.stringify({ message })
         });
 
         const data = await res.json();
-        responseElem.textContent = data.response;
-      } catch (error) {
-        responseElem.textContent = 'Error: ' + error.message;
+        chatContainer.removeChild(loadingEl);
+        appendMessage(data.response, 'bot');
+      } catch (err) {
+        chatContainer.removeChild(loadingEl);
+        appendMessage('Error: ' + err.message, 'bot');
       } finally {
-        loadingElem.style.display = 'none';
         sendBtn.disabled = false;
+        chatContainer.scrollTop = chatContainer.scrollHeight;
       }
+    }
+
+    function appendMessage(text, sender, isLoading = false) {
+      const chatContainer = document.getElementById('chatContainer');
+      const msg = document.createElement('div');
+      msg.className = `my-2 flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = `max-w-[75%] px-4 py-2 rounded-xl ${
+        sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-800'
+      }`;
+
+      bubble.textContent = text;
+      msg.appendChild(bubble);
+      chatContainer.appendChild(msg);
+
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      return msg;
     }
   </script>
 </body>

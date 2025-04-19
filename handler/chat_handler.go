@@ -13,7 +13,9 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 	reply, err := service.GetChatGPTResponse(req.Message)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"response": err.Error()})
 		return
 	}
 

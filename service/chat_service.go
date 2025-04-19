@@ -32,6 +32,10 @@ func GetChatGPTResponse(message string) (string, error) {
 
 	resBody, _ := ioutil.ReadAll(resp.Body)
 
+	// if not 2XX response, return the error message as string
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", errors.New("OpenAI API error: " + string(resBody))
+	}
 	var result map[string]interface{}
 	if err := json.Unmarshal(resBody, &result); err != nil {
 		return "", err
