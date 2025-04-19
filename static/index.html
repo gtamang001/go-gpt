@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ChatGPT Chatbot</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 </head>
 <body class="bg-gray-100 h-screen flex flex-col font-sans">
 
@@ -23,6 +27,16 @@
   </footer>
 
   <script>
+    // Configure marked for highlighting
+    marked.setOptions({
+      highlight: function(code, lang) {
+        const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return hljs.highlight(code, { language: validLang }).value;
+      },
+      langPrefix: 'hljs language-',
+      breaks: true,
+    });
+
     async function send() {
       const input = document.getElementById('input');
       const message = input.value.trim();
@@ -34,11 +48,9 @@
       // Show user message
       appendMessage(message, 'user');
 
-      // Reset input
       input.value = '';
       sendBtn.disabled = true;
 
-      // Show loading
       const loadingEl = appendMessage("...", 'bot', true);
 
       try {
@@ -66,15 +78,29 @@
       msg.className = `my-2 flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
       const bubble = document.createElement('div');
-      bubble.className = `max-w-[75%] px-4 py-2 rounded-xl ${
-        sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-800'
+      bubble.className = `prose max-w-[75%] px-4 py-2 rounded-xl ${
+        sender === 'user'
+          ? 'bg-blue-600 text-white'
+          : 'bg-white text-gray-900 border border-gray-300 shadow'
       }`;
 
-      bubble.textContent = text;
+      if (isLoading) {
+        bubble.textContent = text;
+      } else {
+        if (sender === 'bot') {
+          bubble.innerHTML = marked.parse(text);
+          bubble.querySelectorAll('pre code').forEach((el) => {
+            hljs.highlightElement(el);
+          });
+        } else {
+          bubble.textContent = text;
+        }
+      }
+
       msg.appendChild(bubble);
       chatContainer.appendChild(msg);
-
       chatContainer.scrollTop = chatContainer.scrollHeight;
+
       return msg;
     }
   </script>
