@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ChatGPT Chatbot</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    textarea { width: 100%; }
+    button { padding: 8px 16px; margin-top: 10px; }
+    #loading { display: none; color: #555; }
+  </style>
+</head>
+<body>
+  <h2>Chat with GPT</h2>
+  
+  <textarea id="input" rows="4" placeholder="Type your message here..."></textarea><br>
+  <button id="sendBtn" onclick="send()">Send</button>
+  
+  <p id="loading">Loading...</p>
+  <h3>Response:</h3>
+  <p id="response"></p>
+
+  <script>
+    async function send() {
+      const input = document.getElementById('input');
+      const responseElem = document.getElementById('response');
+      const loadingElem = document.getElementById('loading');
+      const sendBtn = document.getElementById('sendBtn');
+
+      const message = input.value.trim();
+      if (!message) return;
+
+      responseElem.textContent = '';
+      loadingElem.style.display = 'block';
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: message })
+        });
+
+        const data = await res.json();
+        responseElem.textContent = data.response;
+      } catch (error) {
+        responseElem.textContent = 'Error: ' + error.message;
+      } finally {
+        loadingElem.style.display = 'none';
+        sendBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
